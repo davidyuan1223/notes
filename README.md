@@ -35,7 +35,25 @@ To implement a custom logic based on the parsed SQL statements, configure a clas
 
 For example, examine how Spark's `AstBuilder` utilizes the visitor pattern to convert SQL ASTs into logical plans, which you can find in Spark's source at [AstBuilder.scala](https://github.com/apache/spark/blob/master/sql/catalyst/src/main/scala/org/apache/spark/sql/catalyst/parser/AstBuilder.scala). In this class, specific visitor methods handle the translation of various SQL structures into Spark's logical plans.
 
-Parse The SQL
+**Parse The SQL**
+
+When Spark parses SQL, the process involves transforming the ANTLR abstract syntax tree (AST) using the `AstBuilder`. This process resolves the tree from an unresolved state into a resolved logical plan. Spark achieves this by implementing a base class called `TreeNode`, which forms the foundation for handling and transforming the tree structure systematically. This approach facilitates efficient processing and optimization of SQL queries.
+
+The `AbstractSqlParser` in Spark plays a crucial role in parsing SQL text into a `LogicalPlan`. When a SQL query is executed using `spark.sql`, it first reaches the parser stage, where the `astBuilder` is employed to translate the SQL text into a logical plan. This process is pivotal for transforming the raw SQL syntax into a structured format that Spark can optimize and execute efficiently. The `parsePlan` method exemplifies this by invoking `astBuilder.visitSingleStatement` to handle specific SQL structures and ensure they are correctly interpreted as logical plans. If the parsing process encounters an unsupported SQL statement, it throws a `sqlStatementUnsupportedError`. This mechanism ensures that only valid and optimizable SQL queries are processed further in Spark's query execution pipeline.
+
+```
+  override def parsePlan(sqlText: String): LogicalPlan = parse(sqlText) { parser =>
+    val ctx = parser.singleStatement()
+    withOrigin(ctx, Some(sqlText)) {
+      astBuilder.visitSingleStatement(ctx) match {
+        case plan: LogicalPlan => plan
+        case _ =>
+          val position = Origin(None, None)
+          throw QueryParsingErrors.sqlStatementUnsupportedError(sqlText, position)
+      }
+    }
+  }
+```
 
 
 
