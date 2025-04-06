@@ -55,6 +55,19 @@ The `AbstractSqlParser` in Spark plays a crucial role in parsing SQL text into a
   }
 ```
 
+Talk is cheap, let's see the real SQL parse
+
+```
+SELECT A.*
+FROM TABLE_A A
+LEFT JOIN TABLE_B B
+ON A.ID=B.ID
+```
+
+<figure><img src=".gitbook/assets/截屏2025-04-07 02.58.55.png" alt=""><figcaption></figcaption></figure>
+
+The above picture is from anltr tool, which parse the sql text, then get an ast tree.
+
 
 
 ### Logical Plan Analysis
